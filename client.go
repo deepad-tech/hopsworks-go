@@ -25,7 +25,8 @@ func (h *httpHeader) Header() http.Header {
 }
 
 type Client struct {
-	config *ClientConfig
+	config    *ClientConfig
+	projectID uint64
 }
 
 // NewClient creates new Hopsworks API client.
@@ -41,8 +42,14 @@ func NewClientWithConfig(config *ClientConfig) *Client {
 }
 
 // Login connects to the Hopsworks server and returns project.
-func (c *Client) Login(ctx context.Context) (*Project, error) {
-	return c.GetProject(ctx, c.config.Project)
+func (c *Client) Login(ctx context.Context) (*ProjectClient, error) {
+	p, err := c.GetProject(ctx, c.config.Project)
+	if err != nil {
+		return nil, fmt.Errorf("get project: %w", err)
+	}
+	p.projectID = p.ID
+
+	return p, nil
 }
 
 type requestOptions struct {
@@ -98,7 +105,7 @@ func (c *Client) newRequest(ctx context.Context, method, url string, setters ...
 	return req, nil
 }
 
-func (c *Client) sendRequest(req *http.Request, v Response) error {
+func (c *Client) sendRequest(req *http.Request, v any) error {
 	req.Header.Set("Accept", "application/json")
 
 	// Check whether Content-Type is already set, Upload Files API requires
@@ -117,10 +124,6 @@ func (c *Client) sendRequest(req *http.Request, v Response) error {
 
 	if isFailureStatusCode(res) {
 		return c.handleErrorResp(res)
-	}
-
-	if v != nil {
-		v.SetHeader(res.Header)
 	}
 
 	return decodeResponse(res.Body, v)
