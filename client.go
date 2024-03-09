@@ -128,7 +128,7 @@ func (c *Client) sendRequest(req *http.Request, v Response) error {
 
 func (c *Client) setCommonHeaders(req *http.Request) {
 	if c.config.apiKey != "" {
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.apiKey))
+		req.Header.Set("Authorization", fmt.Sprintf("ApiKey %s", c.config.apiKey))
 	}
 }
 
