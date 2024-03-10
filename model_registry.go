@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-
-	"github.com/deepad-tech/hopsworks-go/hsml"
 )
 
 type ModelRegistry struct {
@@ -66,7 +64,7 @@ func (c *Client) GetModelRegistry(ctx context.Context, project string) (*ModelRe
 	return r, nil
 }
 
-func (r *ModelRegistry) GetModel(ctx context.Context, name string, version int) (*hsml.Model, error) {
+func (r *ModelRegistry) GetModel(ctx context.Context, name string, version int) (*Model, error) {
 	m, err := r.client.GetModel(ctx, name, version, r.ID)
 	if err != nil {
 		return nil, err

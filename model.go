@@ -4,15 +4,51 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-
-	"github.com/deepad-tech/hopsworks-go/hsml"
+	"time"
 )
+
+type Model struct {
+	ID                        int
+	Name                      string
+	Version                   int
+	Description               string
+	Created                   time.Time
+	Environment               string
+	ExperimentID              string
+	ProjectName               string
+	ExperimentProjectName     string
+	TrainingMetrics           interface{} // Change to specific data structure
+	Program                   string
+	UserFullName              string
+	InputExample              string
+	Framework                 string
+	ModelSchema               string
+	TrainingDataset           string
+	SharedRegistryProjectName string
+	ModelRegistryID           string
+
+	engine *ModelEngine
+}
+
+func (m *Model) VersionPath() string {
+	return fmt.Sprintf("%s/%d", m.ModelPath(), m.Version)
+}
+
+func (m *Model) ModelPath() string {
+	return fmt.Sprintf("/Projects/%s/Models/%s", m.ProjectName, m.Name)
+}
+
+// Download downloads the model files and return absolute path to local folder containing them.
+func (m *Model) Download(ctx context.Context) (string, error) {
+	// TODO
+	return "", nil
+}
 
 type GetModelResponse struct {
 	// TODO
 }
 
-func (c *Client) GetModel(ctx context.Context, name string, version int, registryID uint64) (*hsml.Model, error) {
+func (c *Client) GetModel(ctx context.Context, name string, version int, registryID uint64) (*Model, error) {
 	url := c.url(
 		"project",
 		fmt.Sprintf("%d", c.projectID),
@@ -35,7 +71,9 @@ func (c *Client) GetModel(ctx context.Context, name string, version int, registr
 		return nil, err
 	}
 
-	m := &hsml.Model{}
+	m := &Model{
+		engine: NewModelEngine(&LocalEngine{client: c}, c),
+	}
 
 	return m, nil
 }

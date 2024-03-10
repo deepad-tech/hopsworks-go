@@ -1,4 +1,4 @@
-package engine
+package hopsworks
 
 import (
 	"context"
@@ -8,8 +8,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-
-	"github.com/deepad-tech/hopsworks-go/hsml"
 )
 
 type Engine interface {
@@ -18,13 +16,15 @@ type Engine interface {
 
 type ModelEngine struct {
 	Engine
+
+	client *Client
 }
 
-func New(base Engine) *ModelEngine {
-	return &ModelEngine{Engine: base}
+func NewModelEngine(base Engine, client *Client) *ModelEngine {
+	return &ModelEngine{Engine: base, client: client}
 }
 
-func (e *ModelEngine) Download(ctx context.Context, m *hsml.Model) (string, error) {
+func (e *ModelEngine) Download(ctx context.Context, m *Model) (string, error) {
 	dir, err := os.MkdirTemp("tmp", "*")
 	if err != nil {
 		return "", fmt.Errorf("mkdir: %w", err)
@@ -67,12 +67,14 @@ func (e *ModelEngine) downloadRecursive(ctx context.Context, fromPath, localPath
 		err    error
 	)
 
-	// TODO: get client somehow
-	var items []map[string]interface{}
+	items, err := e.client.ListDataset(ctx, fromPath)
+	if err != nil {
+		return 0, 0, fmt.Errorf("list dataset: %w", err)
+	}
 
 	for _, item := range items {
-		pathAttr := item["attributes"].(map[string]interface{})
-		path := pathAttr["path"].(string)
+		pathAttr := item.Attributes
+		path := item.Path
 		basename := filepath.Base(path)
 
 		if pathAttr["dir"].(bool) {

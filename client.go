@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 )
 
 type Response interface {
@@ -50,6 +51,43 @@ func (c *Client) Login(ctx context.Context) (*ProjectClient, error) {
 	p.projectID = p.ID
 
 	return p, nil
+}
+
+func (c *Client) DownloadDatasetFile(ctx context.Context, remotePath, localPath string) error {
+	url := c.url(
+		"project",
+		fmt.Sprintf("%d", c.projectID),
+		"dataset",
+		"download",
+		"with_auth",
+		remotePath,
+	)
+	queryArgs := map[string]string{
+		"type": "DATASET",
+	}
+
+	req, err := c.newRequest(ctx, http.MethodGet, url, withQueryArgs(queryArgs))
+	if err != nil {
+		return err
+	}
+
+	f, err := os.OpenFile(localPath, os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("open file: %w", err)
+	}
+	defer f.Close()
+
+	v := new(bytes.Buffer)
+	if err := c.sendRequest(req, &v); err != nil {
+		return err
+	}
+
+	_, err = io.Copy(f, v)
+	if err != nil {
+		return fmt.Errorf("copy: %w", err)
+	}
+
+	return nil
 }
 
 type requestOptions struct {
@@ -126,7 +164,6 @@ func (c *Client) sendRequest(req *http.Request, v any) error {
 	if err != nil {
 		return err
 	}
-
 	defer res.Body.Close()
 
 	if isFailureStatusCode(res) {
