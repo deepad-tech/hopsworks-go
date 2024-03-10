@@ -53,41 +53,48 @@ func (c *Client) Login(ctx context.Context) (*ProjectClient, error) {
 }
 
 type requestOptions struct {
-	body   any
-	header http.Header
+	body      any
+	header    http.Header
+	queryArgs map[string]string
 }
 
 type requestOption func(*requestOptions)
 
 func withBody(body any) requestOption {
-	return func(args *requestOptions) {
-		args.body = body
+	return func(opts *requestOptions) {
+		opts.body = body
 	}
 }
 
 func withContentType(contentType string) requestOption {
-	return func(args *requestOptions) {
-		args.header.Set("Content-Type", contentType)
+	return func(opts *requestOptions) {
+		opts.header.Set("Content-Type", contentType)
+	}
+}
+
+func withQueryArgs(args map[string]string) requestOption {
+	return func(opts *requestOptions) {
+		opts.queryArgs = args
 	}
 }
 
 func (c *Client) newRequest(ctx context.Context, method, url string, setters ...requestOption) (*http.Request, error) {
 	// Default Options
-	args := &requestOptions{
+	opts := &requestOptions{
 		body:   nil,
 		header: make(http.Header),
 	}
 	for _, setter := range setters {
-		setter(args)
+		setter(opts)
 	}
 
 	var bodyReader io.Reader
-	if args.body != nil {
-		if v, ok := args.body.(io.Reader); ok {
+	if opts.body != nil {
+		if v, ok := opts.body.(io.Reader); ok {
 			bodyReader = v
 		} else {
 			var reqBytes []byte
-			reqBytes, err := json.Marshal(args.body)
+			reqBytes, err := json.Marshal(opts.body)
 			if err != nil {
 				return nil, fmt.Errorf("marshal: %w", err)
 			}
