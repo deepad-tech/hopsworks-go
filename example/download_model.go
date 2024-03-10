@@ -12,7 +12,7 @@ import (
 func main() {
 	ctx := context.Background()
 
-	client := hopsworks.NewClient(os.Getenv("HOPSWORKS_API_KEY"))
+	client := hopsworks.NewClient(os.Getenv("HOPSWORKS_API_KEY"), os.Getenv("HOPSWORKS_PROJECT"))
 	project, err := client.Login(ctx)
 	if err != nil {
 		log.Fatal(err)

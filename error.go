@@ -6,11 +6,10 @@ import (
 
 // APIError provides error information returned by the Hopsworks API.
 type APIError struct {
-	Code           any     `json:"code,omitempty"`
-	Message        string  `json:"message"`
-	Param          *string `json:"param,omitempty"`
-	Type           string  `json:"type"`
-	HTTPStatusCode int     `json:"-"`
+	Code           any    `errorCode:"code,omitempty"`
+	UserMessage    string `json:"usrMsg,omitempty"`
+	ErrMessage     string `json:"errorMsg,omitempty"`
+	HTTPStatusCode int    `json:"-"`
 }
 
 // RequestError provides information about generic request errors.
@@ -20,15 +19,15 @@ type RequestError struct {
 }
 
 type ErrorResponse struct {
-	Error *APIError `json:"error,omitempty"`
+	Error *APIError
 }
 
 func (e *APIError) Error() string {
 	if e.HTTPStatusCode > 0 {
-		return fmt.Sprintf("error, status code: %d, message: %s", e.HTTPStatusCode, e.Message)
+		return fmt.Sprintf("error, status code: %d, message: %s", e.HTTPStatusCode, e.ErrMessage)
 	}
 
-	return e.Message
+	return e.ErrMessage
 }
 
 func (e *RequestError) Error() string {

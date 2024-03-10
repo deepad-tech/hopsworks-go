@@ -10,6 +10,7 @@ import (
 	"strings"
 )
 
+// Engine is the set of methods that must be implemented by a dataset engine.
 type Engine interface {
 	Download(ctx context.Context, remotePath, localPath string) error
 }
@@ -20,10 +21,12 @@ type ModelEngine struct {
 	client *Client
 }
 
+// NewModelEngine creates new model engine wrapping the base engine.
 func NewModelEngine(base Engine, client *Client) *ModelEngine {
 	return &ModelEngine{Engine: base, client: client}
 }
 
+// Download downloads the model files and return absolute path to local folder containing them.
 func (e *ModelEngine) Download(ctx context.Context, m *Model) (string, error) {
 	dir, err := os.MkdirTemp("tmp", "*")
 	if err != nil {

@@ -17,6 +17,7 @@ const (
 	hopsworksPort = 443
 )
 
+// DefaultConfig returns default configuration for Hopsworks API client.
 func DefaultConfig(apiKey string) *ClientConfig {
 	return &ClientConfig{
 		apiKey:     apiKey,

@@ -11,28 +11,17 @@ import (
 	"os"
 )
 
-type Response interface {
-	SetHeader(http.Header)
-}
-
-type httpHeader http.Header
-
-func (h *httpHeader) SetHeader(header http.Header) {
-	*h = httpHeader(header)
-}
-
-func (h *httpHeader) Header() http.Header {
-	return http.Header(*h)
-}
-
 type Client struct {
 	config    *ClientConfig
 	projectID uint64
 }
 
 // NewClient creates new Hopsworks API client.
-func NewClient(apiKey string) *Client {
-	return NewClientWithConfig(DefaultConfig(apiKey))
+func NewClient(apiKey, project string) *Client {
+	config := DefaultConfig(apiKey)
+	config.Project = project
+
+	return NewClientWithConfig(config)
 }
 
 // NewClientWithConfig creates new Hopsworks API client for specified config.
@@ -53,6 +42,7 @@ func (c *Client) Login(ctx context.Context) (*ProjectClient, error) {
 	return p, nil
 }
 
+// DownloadDatasetFile downloads a file from the dataset to the specified local path.
 func (c *Client) DownloadDatasetFile(ctx context.Context, remotePath, localPath string) error {
 	url := c.url(
 		"project",
@@ -191,21 +181,18 @@ func isFailureStatusCode(resp *http.Response) bool {
 }
 
 func (c *Client) handleErrorResp(resp *http.Response) error {
-	var errRes ErrorResponse
+	var errRes *APIError
 	err := json.NewDecoder(resp.Body).Decode(&errRes)
-	if err != nil || errRes.Error == nil {
+	if err != nil {
 		reqErr := &RequestError{
 			HTTPStatusCode: resp.StatusCode,
 			Err:            err,
 		}
-		if errRes.Error != nil {
-			reqErr.Err = errRes.Error
-		}
 		return reqErr
 	}
 
-	errRes.Error.HTTPStatusCode = resp.StatusCode
-	return errRes.Error
+	errRes.HTTPStatusCode = resp.StatusCode
+	return errRes
 }
 
 func decodeResponse(body io.Reader, v any) error {

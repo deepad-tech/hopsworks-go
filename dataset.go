@@ -14,6 +14,7 @@ type Item struct {
 	Path       string                 `json:"path"`
 }
 
+// ListDataset returns a list of files and directories in the dataset.
 func (c *Client) ListDataset(ctx context.Context, remotePath string) ([]Item, error) {
 	url := c.url("project", fmt.Sprintf("%d", c.projectID), "dataset", remotePath)
 

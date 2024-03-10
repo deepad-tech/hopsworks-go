@@ -30,18 +30,19 @@ type Model struct {
 	engine *ModelEngine
 }
 
+// VersionPath returns the path to the model version in the Hopsworks file system.
 func (m *Model) VersionPath() string {
 	return fmt.Sprintf("%s/%d", m.ModelPath(), m.Version)
 }
 
+// ModelPath returns the path to the model in the Hopsworks file system.
 func (m *Model) ModelPath() string {
 	return fmt.Sprintf("/Projects/%s/Models/%s", m.ProjectName, m.Name)
 }
 
 // Download downloads the model files and return absolute path to local folder containing them.
 func (m *Model) Download(ctx context.Context) (string, error) {
-	// TODO
-	return "", nil
+	return m.engine.Download(ctx, m)
 }
 
 type GetModelResponse struct {

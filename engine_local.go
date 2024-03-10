@@ -2,6 +2,7 @@ package hopsworks
 
 import "context"
 
+// LocalEngine is dataset API based engine.
 type LocalEngine struct {
 	client *Client
 }
