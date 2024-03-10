@@ -64,34 +64,12 @@ func (c *Client) GetModelRegistry(ctx context.Context, project string) (*ModelRe
 	return r, nil
 }
 
-type GetModelResponse struct {
-	// TODO
-}
-
-func (r *ModelRegistry) GetModel(ctx context.Context, name string, version int, registryID uint64) (*Model, error) {
-	url := r.client.url(
-		"project",
-		fmt.Sprintf("%d", r.client.projectID),
-		"modelregistries",
-		fmt.Sprintf("%d", registryID),
-		"models",
-		fmt.Sprintf("%s_%d", name, version),
-	)
-	queryArgs := map[string]string{
-		"expand": "trainingdatasets",
-	}
-
-	req, err := r.client.newRequest(ctx, http.MethodGet, url, withQueryArgs(queryArgs))
+func (r *ModelRegistry) GetModel(ctx context.Context, name string, version int) (*Model, error) {
+	m, err := r.client.GetModel(ctx, name, version, r.ID)
 	if err != nil {
 		return nil, err
 	}
-
-	var v GetModelResponse
-	if err := r.client.sendRequest(req, &v); err != nil {
-		return nil, err
-	}
-
-	m := &Model{}
+	m.SharedRegistryProjectName = r.SharedProjectName
 
 	return m, nil
 }
