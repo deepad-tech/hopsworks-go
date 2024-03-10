@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 
@@ -27,7 +28,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := model.Download(ctx); err != nil {
+	path, err := model.Download(ctx)
+	if err != nil {
 		log.Fatal(err)
 	}
+
+	fmt.Println(path)
 }
